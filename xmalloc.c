@@ -21,10 +21,19 @@ void* xmalloc(size_t size) {
     aligned_block_size = (block_size + WORD_SIZE - 1) & ~(WORD_SIZE - 1) // power of 2 alignment
 
     // 2. traverse the free list to find a suitable block
+    struct memBlock* prev = NULL;
+    struct memBlock* curr = free_list;
 
-    // 3. remove block from the free list and return a pointer to the memory
+    while (curr) { // while the current block is not NULLs
+        
+    }
+
+        // 3. remove block from the free list and return a pointer to the memory
+
 
     // 4. if no suitable block is found, request more memory from the system using sbrk
+    curr = (struct memBlock*)sbrk(aligned_block_size) // increase the program break (heap) by the amount needed and cast the starting adress to memBlock type
+    if (curr == (void*)-1) return NULL; // if sbrk fails, return NULL
 
     // 5. initialize the new block and return a pointer to the memorys
 }
