@@ -1,14 +1,14 @@
 #include <stddef.h>
 
-#define BLOCK_HEADER_SIZE sizeof(struct memBlock) // define the size of the memory block header
+#define MEMBLOCK_HEADER_SIZE sizeof(struct memBlock) // define the size of the memory block header
 
 // memory block struct
 struct memBlock {
-    size_t size;          // size of the block in bytes
-    struct Block* next;   // pointer to the next block in the free list
+    size_t size;          // size of the memory block in bytes
+    struct memBlock* next;   // pointer to the next memory block in the free list
 };
 
-static struct memBlock* free_list = NULL; // global pointer to the free list
+static struct memBlock* free_list = NULL; // global pointer to the free list (the first element in the free list)
 
 // memory allocation function
 void* xmalloc(size_t size) {
@@ -20,7 +20,7 @@ void* xmalloc(size_t size) {
 
     // 4. if no suitable block is found, request more memory from the system using sbrk
 
-    // 5. initialize the new block and return a pointer to the memory
+    // 5. initialize the new block and return a pointer to the memorys
 }
 
 // memory deallocation function
