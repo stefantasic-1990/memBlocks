@@ -49,7 +49,10 @@ void* xmalloc(size_t size) {
 void xfree(void* ptr) {
     if (!ptr) return;
 
-    // 1. get the block header from the pointer
+    // get the block header from the pointer
+    struct memBlock* block = (struct memBlock*)((char*)ptr - MEMBLOCK_HEADER_SIZE);
 
-    // 2. add the block to the free list
+    // add the block to the free list
+    block->next = free_list;
+    free_list = block;
 }
