@@ -13,29 +13,36 @@ static struct memBlock* free_list = NULL; // global pointer to the free list (th
 
 // memory allocation function
 void* xmalloc(size_t size) {
-    // 0. if requested size is zero, return a NULL
+    // if requested size is zero, return a NULL
     if (size == 0) return NULL;
 
-    // 1. adjust size to include header and align it
+    // adjust size to include header and align it
     block_size = MEMBLOCK_HEADER_SIZE + size;
     aligned_block_size = (block_size + WORD_SIZE - 1) & ~(WORD_SIZE - 1) // power of 2 alignment
 
-    // 2. traverse the free list to find a suitable block
+    // traverse the free list to find a suitable block
     struct memBlock* prev = NULL;
     struct memBlock* curr = free_list;
 
-    while (curr) { // while the current block is not NULLs
-        
+    while (curr) { // while the current block is not NULL
+        if (curr->size >= size) {
+        // split the block if possible
+
+        // remove block from the free list and return a pointer to the memory
+        prev->next = curr->next;
+        curr->next = NULL;
+        return (void*)((char*)curr + MEMBLOCK_HEADER_SIZE);
+        }
     }
 
-        // 3. remove block from the free list and return a pointer to the memory
-
-
-    // 4. if no suitable block is found, request more memory from the system using sbrk
+    // if no suitable block is found, request more memory from the system using sbrk
     curr = (struct memBlock*)sbrk(aligned_block_size) // increase the program break (heap) by the amount needed and cast the starting adress to memBlock type
     if (curr == (void*)-1) return NULL; // if sbrk fails, return NULL
 
-    // 5. initialize the new block and return a pointer to the memorys
+    // initialize the new block and return a pointer to it
+    curr->size = size;
+    curr->next = NULL;
+    return (void*)((char*)curr + MEMBLOCK_HEADER_SIZE);
 }
 
 // memory deallocation function
