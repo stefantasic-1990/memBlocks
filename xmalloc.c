@@ -4,6 +4,8 @@
 #define MEMBLOCK_HEADER_SIZE sizeof(struct memBlock) // define the size of the memory block header
 #define WORD_SIZE sizeof(void*) // define the word size of the system to be the size of a pointer in bytes
 
+void *sbrk(intptr_t increment);
+
 // memory block struct
 struct memBlock {
     size_t size;          // size of the memory block in bytes
@@ -19,7 +21,7 @@ void* xmalloc(size_t size) {
 
     // adjust size to include header and align it
     int block_size = MEMBLOCK_HEADER_SIZE + size;
-    int aligned_block_size = (block_size + WORD_SIZE - 1) & ~(WORD_SIZE - 1) // power of 2 alignment
+    int aligned_block_size = (block_size + WORD_SIZE - 1) & ~(WORD_SIZE - 1); // power of 2 alignment
 
     // traverse the free list to find a suitable block
     struct memBlock* prev = NULL;
@@ -50,6 +52,7 @@ void* xmalloc(size_t size) {
                 }
             }
         }
+    }
 
     // if no suitable block is found, request more memory from the system using sbrk
     curr = (struct memBlock*)sbrk(aligned_block_size); // increase the program break (heap) by the amount needed and cast the starting adress to memBlock type
