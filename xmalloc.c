@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <unistd.h>
 
 #define MEMBLOCK_HEADER_SIZE sizeof(struct memBlock) // define the size of the memory block header
 #define WORD_SIZE sizeof(void*) // define the word size of the system to be the size of a pointer in bytes
@@ -17,8 +18,8 @@ void* xmalloc(size_t size) {
     if (size == 0) return NULL;
 
     // adjust size to include header and align it
-    block_size = MEMBLOCK_HEADER_SIZE + size;
-    aligned_block_size = (block_size + WORD_SIZE - 1) & ~(WORD_SIZE - 1) // power of 2 alignment
+    int block_size = MEMBLOCK_HEADER_SIZE + size;
+    int aligned_block_size = (block_size + WORD_SIZE - 1) & ~(WORD_SIZE - 1) // power of 2 alignment
 
     // traverse the free list to find a suitable block
     struct memBlock* prev = NULL;
@@ -26,17 +27,32 @@ void* xmalloc(size_t size) {
 
     while (curr) { // while the current block is not NULL
         if (curr->size >= size) {
-        // split the block if possible
+            // split the block if possible
 
-        // remove block from the free list and return a pointer to the memory
-        prev->next = curr->next;
-        curr->next = NULL;
-        return (void*)((char*)curr + MEMBLOCK_HEADER_SIZE);
+            // remove block from the free list and return a pointer to the memory
+            if (curr->next == NULL) {
+                // only node
+                if (prev == NULL) {
+                    free_list = NULL;
+                // last node
+                } else {
+                    prev->next = NULL;
+                    }
+            } else {
+                // first node
+                if (prev == NULL) {
+                    free_list = curr->next;
+                    curr->next = NULL;
+                // middle node
+                } else {
+                    prev->next = curr->next;
+                    curr->next = NULL;
+                }
+            }
         }
-    }
 
     // if no suitable block is found, request more memory from the system using sbrk
-    curr = (struct memBlock*)sbrk(aligned_block_size) // increase the program break (heap) by the amount needed and cast the starting adress to memBlock type
+    curr = (struct memBlock*)sbrk(aligned_block_size); // increase the program break (heap) by the amount needed and cast the starting adress to memBlock type
     if (curr == (void*)-1) return NULL; // if sbrk fails, return NULL
 
     // initialize the new block and return a pointer to it
