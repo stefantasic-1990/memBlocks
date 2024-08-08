@@ -4,12 +4,13 @@
 #define MEMBLOCK_HEADER_SIZE sizeof(struct memBlock) // define the size of the memory block header
 #define WORD_SIZE sizeof(void*) // define the word size of the system to be the size of a pointer in bytes
 
-void *sbrk(intptr_t increment);
+// define the sbrk prototype
+void* sbrk(intptr_t increment);
 
 // memory block struct
 struct memBlock {
     size_t size;          // size of the memory block in bytes
-    struct memBlock* next;   // pointer to the next memory block in the free list
+    struct memBlock* next;   // pointer sto the next memory block in the free list
 };
 
 static struct memBlock* free_list = NULL; // global pointer to the free list (the first element in the free list)

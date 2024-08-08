@@ -6,8 +6,8 @@
 #define WORD_SIZE sizeof(void*) // define the word size of the system to be the size of a pointer in bytes
 
 // function prototypes
-void* xmalloc(size_t size)
-void xfree(void* ptr)
+void* xmalloc(size_t size);
+void xfree(void* ptr);
 
 // memBlock struct
 struct memBlock {
@@ -24,7 +24,7 @@ int main() {
     } else {
         printf("Allocation succeeded");
         struct memBlock* block = (void*)(char*)ptr8 - MEMBLOCK_HEADER_SIZE;
-        printf("The size of this memory block is: %zu", block->size)
+        printf("The size of this memory block is: %zu", block->size);
     }
 
     // test requesting 6 bytes, expecting to get an 8 byte block
@@ -34,7 +34,7 @@ int main() {
     } else {
         printf("Allocation succeeded");
         struct memBlock* block = (void*)(char*)ptr6 - MEMBLOCK_HEADER_SIZE;
-        printf("The size of this memory block is: %zu", block->size)
+        printf("The size of this memory block is: %zu", block->size);
     }
     
 }
