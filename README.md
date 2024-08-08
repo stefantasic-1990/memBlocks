@@ -6,6 +6,5 @@ Personal project implementing a free list memory allocator in C.
 
 ## Features
 
-- [ ] Basic memory block allocation/deallocation
-- [ ] Block splitting
-- [ ] Heap compaction
+- [ ] Basic allocation/deallocation
+- [ ] Segregated free lists
