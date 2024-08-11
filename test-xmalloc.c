@@ -36,5 +36,15 @@ int main() {
         struct memBlock* block = (void*)(char*)ptr6 - MEMBLOCK_HEADER_SIZE;
         printf("The size of this memory block is: %zu\n", block->size);
     }
+
+    // test requesting 10 bytes, expecting to get a 16 byte block
+    void* ptr10 = xmalloc(6);
+    if (ptr10 == NULL) {
+        printf("Allocation failed requesting 6 bytes");
+    } else {
+        printf("Allocation succeeded\n");
+        struct memBlock* block = (void*)(char*)ptr10 - MEMBLOCK_HEADER_SIZE;
+        printf("The size of this memory block is: %zu\n", block->size);
+    }
     
 }
