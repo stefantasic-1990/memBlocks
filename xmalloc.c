@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdio.h>
 #include <unistd.h>
 
 #define MEMBLOCK_HEADER_SIZE sizeof(struct memBlock) // define the size of the memory block header
@@ -50,6 +51,7 @@ void* xmalloc(size_t size) {
                 }
             }
         }
+        curr = curr->next;
     }
 
     // if no suitable block is found, request more memory from the system using sbrk
@@ -72,4 +74,14 @@ void xfree(void* ptr) {
     // add the block to the free list
     block->next = free_list;
     free_list = block;
+}
+
+void xprintfl() {
+    struct memBlock* curr = free_list;
+    int i = 1;
+
+    while (curr) {
+        printf("Free list block %i has size %zu bytes\n", i, curr->size);
+        curr = curr->next;
+    }
 }
