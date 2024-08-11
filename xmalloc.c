@@ -51,6 +51,7 @@ void* xmalloc(size_t size) {
                 }
             }
         }
+        prev = curr;
         curr = curr->next;
     }
 
@@ -81,7 +82,8 @@ void xprintfl() {
     int i = 1;
 
     while (curr) {
-        printf("Free list block %i has size %zu bytes\n", i, curr->size);
+        printf("Free list block %i has a data size of %zu bytes\n", i, curr->size);
         curr = curr->next;
+        i++;
     }
 }
