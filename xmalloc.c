@@ -4,9 +4,6 @@
 #define MEMBLOCK_HEADER_SIZE sizeof(struct memBlock) // define the size of the memory block header
 #define WORD_SIZE sizeof(void*) // define the word size of the system to be the size of a pointer in bytes
 
-// define the sbrk prototype
-void* sbrk(intptr_t increment);
-
 // memory block struct
 struct memBlock {
     size_t size;          // size of the memory block in bytes
