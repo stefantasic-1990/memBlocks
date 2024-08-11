@@ -57,7 +57,7 @@ void* xmalloc(size_t size) {
     if (curr == (void*)-1) return NULL; // if sbrk fails, return NULL
 
     // initialize the new block and return a pointer to it
-    curr->size = aligned_block_size;
+    curr->size = aligned_block_size - MEMBLOCK_HEADER_SIZE;
     curr->next = NULL;
     return (void*)((char*)curr + MEMBLOCK_HEADER_SIZE);
 }

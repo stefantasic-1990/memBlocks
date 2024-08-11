@@ -19,37 +19,19 @@ int main() {
     printf("Word size is %zu bytes\n", WORD_SIZE);
     printf("MemBlock header size is %zu bytes\n\n", MEMBLOCK_HEADER_SIZE);
 
-    // test requesting 6 bytes, expecting to get an 8 byte block
-    void* ptr6 = xmalloc(6);
-    printf("Allocating 6 bytes\n");
-    if (ptr6 == NULL) {
-        printf("Allocation failed requesting 6 bytes");
-    } else {
-        printf("Allocation succeeded\n");
-        struct memBlock* block = (void*)(char*)ptr6 - MEMBLOCK_HEADER_SIZE;
-        printf("The size of this memory block is: %zu bytes\n\n", block->size);
-    }
+    int bytes[] = {6,8,10,20,30};
+    int bytes_l = sizeof(bytes) / sizeof(bytes[0]);
 
-    // test requesting 8 bytes, expecting to get an 8 byte block
-    void* ptr8 = xmalloc(8);
-    printf("Allocating 8 bytes\n");
-    if (ptr8 == NULL) {
-        printf("Allocation failed requesting 8 bytes");
-    } else {
-        printf("Allocation succeeded\n");
-        struct memBlock* block = (void*)(char*)ptr8 - MEMBLOCK_HEADER_SIZE;
-        printf("The size of this memory block is: %zu bytes\n\n", block->size);
-    }
-
-    // test requesting 10 bytes, expecting to get a 16 byte block
-    void* ptr10 = xmalloc(10);
-    printf("Allocating 10 bytes\n");
-    if (ptr10 == NULL) {
-        printf("Allocation failed requesting 10 bytes");
-    } else {
-        printf("Allocation succeeded\n");
-        struct memBlock* block = (void*)(char*)ptr10 - MEMBLOCK_HEADER_SIZE;
-        printf("The size of this memory block is: %zu\n", block->size);
-    }
-    
+    for (int i = 0; i < bytes_l; i++) {
+        void* ptr = xmalloc(bytes[i]);
+        printf("Allocating %i bytes\n", bytes[i]);
+        if (ptr == NULL) {
+            printf("Allocation failed requesting %i bytes", bytes[i]);
+        } else {
+            printf("Allocation succeeded\n");
+            struct memBlock* block = (void*)(char*)ptr - MEMBLOCK_HEADER_SIZE;
+            printf("The size of the header plus data is: %zu bytes\n", (block->size + MEMBLOCK_HEADER_SIZE));
+            printf("The size of this memory block is: %zu bytes\n\n", block->size);
+        }
+    }    
 }
