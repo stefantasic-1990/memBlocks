@@ -20,7 +20,7 @@ int main() {
     printf("Word size is %zu bytes\n", WORD_SIZE);
     printf("MemBlock header size is %zu bytes\n\n", MEMBLOCK_HEADER_SIZE);
 
-    int bytes[] = {6,8,10,20,30};
+    int bytes[] = {6,10,20,30};
     int bytes_l = sizeof(bytes) / sizeof(bytes[0]);
     struct memBlock* block[bytes_l];
 
@@ -39,26 +39,23 @@ int main() {
         block[i] = ptr;
     }
 
-    // print the memory allocator free list
+    printf("Free list:\n");
     xprintfl();
 
-    // // deallocate memory for all byte values in list going backwards
-    // for (int i = 0; i < bytes_l; i++) {
-    //     xfree(block[i]);
-    // }
-
     // deallocate memory for all byte values in list going backwards
+    printf("\nDeallocating all blocks.\n\n");
     for (int i = bytes_l - 1; i >= 0; i--) {
         xfree(block[i]);
     }
 
     // print the memory allocator free list
+    printf("Free list:\n");
     xprintfl();
 
     // allocate a memory block of data size 16
-    // should skip the first two blocks in the free list, both which are 8 bytes
+    // testing the allocation of a middle block in the free list
     void* ptr = xmalloc(16);
-    printf("\nAllocating 16 bytes\n");
+    printf("\nAllocating 16 bytes (get middle block in free list)\n");
     if (ptr == NULL) {
         printf("Allocation failed requesting 16 bytes");
     } else {
@@ -68,15 +65,15 @@ int main() {
         printf("The data size of this block is: %zu bytes\n\n", block->size);
     }
 
-    // print the memory allocator free list, the single 16 byte block that was there should now be gone
+    printf("Free list:\n");
     xprintfl();
 
-    // allocate a memory block of data size 24
-    // should skip the first two blocks in the free list, both which are 8 bytes
-    void* ptr2 = xmalloc(24);
-    printf("\nAllocating 24 bytes\n");
+    // allocate a memory block of data size 4
+    // testing the allocation of the first block in the free list
+    void* ptr2 = xmalloc(4);
+    printf("\nAllocating 4 byte (get first block in free list)\n");
     if (ptr2 == NULL) {
-        printf("Allocation failed requesting 24 bytes");
+        printf("Allocation failed requesting 4 bytes");
     } else {
         printf("Allocation succeeded\n");
         struct memBlock* block = (void*)(char*)ptr2 - MEMBLOCK_HEADER_SIZE;
@@ -84,6 +81,38 @@ int main() {
         printf("The data size of this block is: %zu bytes\n\n", block->size);
     }
 
-    // print the memory allocator free list, the single 24 byte block that was there should now be gone
+    printf("Free list:\n"); 
+    xprintfl();
+
+    // allocate a memory block of data size 30
+    // testing the allocation of the last block in the free list
+    void* ptr3 = xmalloc(30);
+    printf("\nAllocating 30 byte (get first block in free list)\n");
+    if (ptr3 == NULL) {
+        printf("Allocation failed requesting 30 bytes");
+    } else {
+        printf("Allocation succeeded\n");
+        struct memBlock* block = (void*)(char*)ptr3 - MEMBLOCK_HEADER_SIZE;
+        printf("The total size of this block is (header plus data): %zu bytes\n", (block->size + MEMBLOCK_HEADER_SIZE));
+        printf("The data size of this block is: %zu bytes\n\n", block->size);
+    }
+
+    printf("Free list:\n"); 
+    xprintfl();
+
+    // allocate a memory block of data size 24
+    // testing the allocation of the only block in the free list
+    void* ptr4 = xmalloc(24);
+    printf("\nAllocating 24 byte (get first block in free list)\n");
+    if (ptr4 == NULL) {
+        printf("Allocation failed requesting 30 bytes");
+    } else {
+        printf("Allocation succeeded\n");
+        struct memBlock* block = (void*)(char*)ptr4 - MEMBLOCK_HEADER_SIZE;
+        printf("The total size of this block is (header plus data): %zu bytes\n", (block->size + MEMBLOCK_HEADER_SIZE));
+        printf("The data size of this block is: %zu bytes\n\n", block->size);
+    }
+
+    printf("Free list:\n"); 
     xprintfl();
 }
