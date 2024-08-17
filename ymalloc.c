@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdbool.h>
+#include <sys/mman.h>
 
 #define MEMBLOCK_HEADER_SIZE sizeof(struct blockHeader)
 #define MEMBLOCK_FOOTER_SIZE sizeof(struct blockFooter)
@@ -17,6 +18,12 @@ struct blockFooter {
     bool free;
 };
 
+struct blockHeader* free_list = NULL;
+
+void initializeMemory() {
+
+}
+
 void* blockCoalesce(void* ptr) {
     
 }
@@ -29,6 +36,6 @@ void* ymalloc(size_t size) {
 
 }
 
-void* yfree(void* ptr) {
+void yfree(void* ptr) {
     
 }
