@@ -8,7 +8,7 @@
 // memory block struct
 struct memBlock {
     size_t size;          // size of the memory block in bytes
-    struct memBlock* next;   // pointer sto the next memory block in the free list
+    struct memBlock* next;   // pointer to the next memory block in the free list
 };
 
 static struct memBlock* free_list = NULL; // global pointer to the free list (the first element in the free list)
