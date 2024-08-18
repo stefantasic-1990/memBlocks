@@ -7,8 +7,8 @@
 #define WORD_SIZE sizeof(void*)
 
 // memory aligned header and footer sizes
-#define MEMBLOCK_HEADER_SIZE (sizeof(struct blockHeader) + WORD_SIZE - 1) & ~(WORD_SIZE - 1)
-#define MEMBLOCK_FOOTER_SIZE (sizeof(struct blockFooter) + WORD_SIZE - 1) & ~(WORD_SIZE - 1)
+#define MEMBLOCK_HEADER_SIZE ((sizeof(struct blockHeader) + WORD_SIZE - 1) & ~(WORD_SIZE - 1))
+#define MEMBLOCK_FOOTER_SIZE ((sizeof(struct blockFooter) + WORD_SIZE - 1) & ~(WORD_SIZE - 1))
 
 #define SMALLEST_BLOCK_SIZE (MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + WORD_SIZE)
 
@@ -28,7 +28,7 @@ struct blockFooter {
 
 struct blockHeader* free_list = NULL;
 
-void* mapArena() {
+void* mapMemory() {
     // map a large block of memory
     void* arena = mmap(
         NULL, 
@@ -51,7 +51,7 @@ void removeBlock(struct blockHeader* ptr) {
 
 }
 
-struct blockHeader* blockCoalesce(struct blockHeader* ptr) {
+void blockCoalesce(struct blockHeader* ptr) {
     
 }
 
@@ -71,18 +71,19 @@ void* ymalloc(size_t size) {
     // search through the free list for a suitable block
     while (curr) {
         // if block size is larger than the request size and can be split
-        if (curr->size > (aligned_size + SMALLEST_BLOCK_SIZE)) {
+        if (curr->size >= (aligned_size + SMALLEST_BLOCK_SIZE)) {
             blockSplit(curr);
             removeBlock(curr);
-            return curr;
+            return (void*)((char*)curr + MEMBLOCK_HEADER_SIZE);
         // if block size is large enough to fit the request size
         } else if (curr->size > aligned_size) {
-
+            removeBlock(curr);
+            return (void*)((char*)curr + MEMBLOCK_HEADER_SIZE);
         }
+        curr = curr->next;
     }
-
     // if no suitable block found, request more memory from the system
-
+    
 }
 
 void yfree(void* ptr) {
