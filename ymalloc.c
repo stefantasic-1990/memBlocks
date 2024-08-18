@@ -75,7 +75,18 @@ void blockCoalesce(struct blockHeader* block) {
 
 // split memory block
 void blockSplit(struct blockHeader* block, size_t size) {
-    
+    // get pointer to new block footer
+    struct blockFooter* block_footer = (char*)block + MEMBLOCK_HEADER_SIZE + size;
+    // get pointer to split block header
+    struct blockHeader* split_block_header = (char*)block + MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + size;
+    // get pointer to split block footer
+    struct blockFooter* split_block_footer = (char*)block + MEMBLOCK_HEADER_SIZE + (block->size - size);
+
+    //adjust next and prev pointers
+    split_block_header->next = block->next;
+    split_block_header->next->prev = split_block_header;
+    split_block_header->prev = block;
+    block->next = split_block_header;
 }
 
 // allocate memory from the free list
