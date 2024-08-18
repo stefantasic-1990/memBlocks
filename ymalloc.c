@@ -28,7 +28,7 @@ struct blockFooter {
 
 struct blockHeader* free_list = NULL;
 
-void* mapMemory() {
+void mapMoreMemory() {
     // map a large block of memory
     void* arena = mmap(
         NULL, 
@@ -42,12 +42,14 @@ void* mapMemory() {
     if (arena == MAP_FAILED) {
         perror("mmap");
         exit(EXIT_FAILURE);
-    }    
+    }
+    // initialize header and footer
+
 
     return arena;
 }
 
-void removeBlock(struct blockHeader* ptr) {
+void* removeBlock(struct blockHeader* ptr) {
 
 }
 
@@ -66,24 +68,28 @@ void* ymalloc(size_t size) {
     // adjust requested size to account for memory alignment and header/footer
     size_t aligned_size = (MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + size + WORD_SIZE - 1) & ~(WORD_SIZE -1);
 
-    struct blockHeader* curr = free_list;
+    struct blockHeader* block = free_list;
 
     // search through the free list for a suitable block
-    while (curr) {
+    while (block) {
         // if block size is larger than the request size and can be split
-        if (curr->size >= (size + SMALLEST_BLOCK_SIZE)) {
-            blockSplit(curr, size);
-            removeBlock(curr);
-            return (void*)((char*)curr + MEMBLOCK_HEADER_SIZE);
+        if (block->size >= (size + SMALLEST_BLOCK_SIZE)) {
+            blockSplit(block, size);
+            removeBlock(block);
+            return (void*)((char*)block + MEMBLOCK_HEADER_SIZE);
         // if block size is large enough to fit the request size
-        } else if (curr->size > size) {
-            removeBlock(curr);
-            return (void*)((char*)curr + MEMBLOCK_HEADER_SIZE);
+        } else if (block->size > size) {
+            removeBlock(block);
+            return (void*)((char*)block + MEMBLOCK_HEADER_SIZE);
         }
-        curr = curr->next;
+        block = block->next;
     }
-    // if no suitable block found, request more memory from the system
-
+    // if no suitable block found, request more memory from the system, split and return block
+    mapMoreMemory();
+    block = free_list;
+    blockSplit(block, size);
+    removeBlock(block);
+    return (void*)((char*)block + MEMBLOCK_HEADER_SIZE);
 }
 
 void yfree(void* ptr) {
