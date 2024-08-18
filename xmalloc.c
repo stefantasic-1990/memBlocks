@@ -28,8 +28,6 @@ void* xmalloc(size_t size) {
 
     while (curr) { // while the current block is not NULL
         if (curr->size >= size) {
-            // split the block if possible
-
             // remove block from the free list and return a pointer to the memory
             if (curr->next == NULL) {
                 // only node

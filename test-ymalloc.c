@@ -34,8 +34,8 @@ int main() {
     int bytes_len = sizeof(bytes) / sizeof(bytes[0]);
     struct blockHeader* allocated_blocks[bytes_len];
 
+    yprintfl();
     ymalloc(6);
-
     yprintfl();
 
     // for (int i = 0; i < bytes_len; i++) {

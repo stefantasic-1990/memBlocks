@@ -64,8 +64,30 @@ void mapMoreMemory() {
 
 // remove memory block from free list
 void removeBlock(struct blockHeader* block) {
-    block->prev->next = block->next;
-    block->next->prev = block->prev;
+    if (block->next == NULL) {
+        // only node
+        if (block->prev == NULL) {
+            freelist = NULL;
+        // last node
+        } else {
+            block->prev->next = NULL;
+            block->prev = NULL;
+        }
+    } else {
+        // first node
+        if (block->prev == NULL) {
+            freelist = block->next;
+            block->next->prev = NULL;
+            block->next = NULL;
+        // middle node
+        } else {
+            block->next->prev = block->prev;
+            block->prev->next = block->next;
+            block->next = NULL;
+            block->prev = NULL;
+        }
+    }
+
     return;
 }
 
