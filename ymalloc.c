@@ -128,5 +128,12 @@ void yfree(void* ptr) {
 
 // print the current free list details
 void yprintfl() {
+    struct blockHeader* block = freelist;
+    int i = 1; // block number
 
+    while (block) {
+        printf("Free list block (%i) has a data size of (%zu) bytes\n", i, block->size);
+        block = block->next;
+        i++;
+    }
 }
