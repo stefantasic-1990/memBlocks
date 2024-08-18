@@ -26,7 +26,7 @@ struct blockFooter {
     bool free;
 };
 
-struct blockHeader* free_list = NULL;
+struct blockHeader* freelist = NULL;
 
 // map additional memory into free list
 void mapMoreMemory() {
@@ -44,10 +44,22 @@ void mapMoreMemory() {
         perror("mmap");
         exit(EXIT_FAILURE);
     }
-    // initialize header and footer
+    // initialize header and footer, add to free list
+    struct blockHeader* arena_header = arena;
+    arena_header->next = freelist;
+    arena_header->size = (ARENA_SIZE - MEMBLOCK_HEADER_SIZE - MEMBLOCK_FOOTER_SIZE);
+    arena_header->free = true;
 
+    struct blockFooter* arena_footer = ((char*)header + header->size + MEMBLOCK_HEADER_SIZE);
+    arena_footer->prev = NULL;
+    arena_footer->size = (ARENA_SIZE - MEMBLOCK_HEADER_SIZE - MEMBLOCK_FOOTER_SIZE);
+    arena_footer->free = true;
 
-    return arena;
+    struct blockFooter* freelist_footer = ((char*)freelist + MEMBLOCK_HEADER_SIZE + freelist->size);
+    freelist_footer->prev = arena_header;
+    freelist = arena_header;
+
+    return;
 }
 
 // remove memory block from free list
@@ -73,7 +85,7 @@ void* ymalloc(size_t size) {
     // adjust requested size to account for memory alignment and header/footer
     size_t aligned_size = (MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + size + WORD_SIZE - 1) & ~(WORD_SIZE -1);
 
-    struct blockHeader* block = free_list;
+    struct blockHeader* block = freelist;
 
     // search through the free list for a suitable block
     while (block) {
@@ -91,7 +103,7 @@ void* ymalloc(size_t size) {
     }
     // if no suitable block found, request more memory from the system, split and return block
     mapMoreMemory();
-    block = free_list;
+    block = freelist;
     blockSplit(block, size);
     removeBlock(block);
     return (void*)((char*)block + MEMBLOCK_HEADER_SIZE);
