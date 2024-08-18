@@ -26,7 +26,7 @@ struct blockFooter {
     bool free;
 };
 
-struct blockHeader* freelist = NULL;
+static struct blockHeader* freelist = NULL;
 
 // map additional memory into free list
 void mapMoreMemory() {
@@ -44,6 +44,7 @@ void mapMoreMemory() {
         perror("mmap");
         exit(EXIT_FAILURE);
     }
+
     // initialize header and footer, add to free list
     struct blockHeader* arena_header = arena;
     arena_header->next = freelist;
@@ -51,11 +52,11 @@ void mapMoreMemory() {
     arena_header->size = (ARENA_SIZE - MEMBLOCK_HEADER_SIZE - MEMBLOCK_FOOTER_SIZE);
     arena_header->free = true;
 
-    struct blockFooter* arena_footer = (void*)(char*)arena_header + MEMBLOCK_HEADER_SIZE + arena_header->size;
+    struct blockFooter* arena_footer = (void*)((char*)arena_header + MEMBLOCK_HEADER_SIZE + arena_header->size);
     arena_footer->size = arena_header->size;
     arena_footer->free = arena_header->free;
 
-    freelist->prev = arena_header;
+    if (freelist != NULL) freelist->prev = arena_header;
     freelist = arena_header;
 
     return;
@@ -75,22 +76,37 @@ void blockCoalesce(struct blockHeader* block) {
 
 // split memory block
 void blockSplit(struct blockHeader* block, size_t size) {
-    // get pointer to new block footer
-    struct blockFooter* block_footer = (void*)(char*)block + MEMBLOCK_HEADER_SIZE + size;
-    // get pointer to split block header
-    struct blockHeader* split_block_header = (void*)(char*)block + MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + size;
-    // get pointer to split block footer
-    struct blockFooter* split_block_footer = (void*)(char*)block + MEMBLOCK_HEADER_SIZE + (block->size - size);
+    // align size to memory
+    size_t aligned_size = (size + WORD_SIZE - 1) & ~(WORD_SIZE - 1);
 
-    //adjust next and prev pointers
+    // get new block footer
+    struct blockFooter* block_footer = (void*)((char*)block + MEMBLOCK_HEADER_SIZE + aligned_size);
+    // get split block header
+    struct blockHeader* split_block_header = (void*)((char*)block_footer + MEMBLOCK_FOOTER_SIZE);
+    // get split block footer
+    struct blockFooter* split_block_footer = (void*)((char*)split_block_header + MEMBLOCK_HEADER_SIZE + (block->size - aligned_size));
+
+    // adjust next and prev pointers
     split_block_header->next = block->next;
-    split_block_header->next->prev = split_block_header;
+    if (split_block_header->next != NULL) split_block_header->next->prev = split_block_header;;
     split_block_header->prev = block;
     block->next = split_block_header;
+
+    // adjust size and free flag
+    split_block_header->size = block->size - aligned_size;
+    split_block_header->free = true;
+    // split_block_footer->size = split_block_header->size;
+    // split_block_footer->free = split_block_header->free;
+    // block_footer->free = true;
+    // block_footer->size = size;
+    // block->free = true;
+    // block->size = size;
 }
 
 // allocate memory from the free list
 void* ymalloc(size_t size) {
+    printf("Debug flag 3.");
+
     // if requested block size is zero, return NULL
     if (size == 0) return NULL;
 
@@ -98,6 +114,9 @@ void* ymalloc(size_t size) {
     size_t aligned_size = (MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + size + WORD_SIZE - 1) & ~(WORD_SIZE -1);
 
     struct blockHeader* block = freelist;
+
+    printf("Debug flag 2.");
+
 
     // search through the free list for a suitable block
     while (block) {
@@ -114,11 +133,18 @@ void* ymalloc(size_t size) {
         block = block->next;
     }
     // if no suitable block found, request more memory from the system, split and return block
+    printf("Debug flag 1.");
+
     mapMoreMemory();
     block = freelist;
     blockSplit(block, size);
-    removeBlock(block);
-    return (void*)((char*)block + MEMBLOCK_HEADER_SIZE);
+    // removeBlock(block);
+
+    // if (((void*)((char*)block + MEMBLOCK_HEADER_SIZE)) == NULL) printf("It's null man.");
+
+    // return (void*)((char*)block + MEMBLOCK_HEADER_SIZE);
+
+    return NULL;
 }
 
 // deallocate memory back into the free list
