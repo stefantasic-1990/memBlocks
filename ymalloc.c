@@ -5,11 +5,10 @@
 
 #define ARENA_SIZE (16 * 1024 * 1024) // 16 MB
 #define WORD_SIZE sizeof(void*)
-
 // memory aligned header and footer sizes
 #define MEMBLOCK_HEADER_SIZE ((sizeof(struct blockHeader) + WORD_SIZE - 1) & ~(WORD_SIZE - 1))
 #define MEMBLOCK_FOOTER_SIZE ((sizeof(struct blockFooter) + WORD_SIZE - 1) & ~(WORD_SIZE - 1))
-
+// smallest possible block size (holds one word)
 #define SMALLEST_BLOCK_SIZE (MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + WORD_SIZE)
 
 // memory block header
