@@ -55,7 +55,7 @@ void blockCoalesce(struct blockHeader* ptr) {
     
 }
 
-void blockSplit(struct blockHeader* ptr) {
+void blockSplit(struct blockHeader* ptr, size_t size) {
     
 }
 
@@ -71,19 +71,19 @@ void* ymalloc(size_t size) {
     // search through the free list for a suitable block
     while (curr) {
         // if block size is larger than the request size and can be split
-        if (curr->size >= (aligned_size + SMALLEST_BLOCK_SIZE)) {
-            blockSplit(curr);
+        if (curr->size >= (size + SMALLEST_BLOCK_SIZE)) {
+            blockSplit(curr, size);
             removeBlock(curr);
             return (void*)((char*)curr + MEMBLOCK_HEADER_SIZE);
         // if block size is large enough to fit the request size
-        } else if (curr->size > aligned_size) {
+        } else if (curr->size > size) {
             removeBlock(curr);
             return (void*)((char*)curr + MEMBLOCK_HEADER_SIZE);
         }
         curr = curr->next;
     }
     // if no suitable block found, request more memory from the system
-    
+
 }
 
 void yfree(void* ptr) {
