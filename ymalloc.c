@@ -50,7 +50,7 @@ void mapMoreMemory() {
     arena_header->size = (ARENA_SIZE - MEMBLOCK_HEADER_SIZE - MEMBLOCK_FOOTER_SIZE);
     arena_header->free = true;
 
-    struct blockFooter* arena_footer = ((char*)header + header->size + MEMBLOCK_HEADER_SIZE);
+    struct blockFooter* arena_footer = ((char*)arena_header + header->size + MEMBLOCK_HEADER_SIZE);
     arena_footer->prev = NULL;
     arena_footer->size = (ARENA_SIZE - MEMBLOCK_HEADER_SIZE - MEMBLOCK_FOOTER_SIZE);
     arena_footer->free = true;
@@ -59,21 +59,26 @@ void mapMoreMemory() {
     freelist_footer->prev = arena_header;
     freelist = arena_header;
 
-    return;
+    return 1;
 }
 
 // remove memory block from free list
-void* removeBlock(struct blockHeader* ptr) {
+void* removeBlock(struct blockHeader* block) {
+    struct blockFooter* block_footer = ((char*)block + MEMBLOCK_HEADER_SIZE + block->size);
+    struct blockFooter* next_footer = ((char*)block->next + MEMBLOCK_HEADER_SIZE + block->size);
+    block_footer->prev = block->next;
+    next_footer = block_footer->prev;
 
+    return 1;
 }
 
 // coalesce memory block
-void blockCoalesce(struct blockHeader* ptr) {
+void blockCoalesce(struct blockHeader* block) {
     
 }
 
 // split memory block
-void blockSplit(struct blockHeader* ptr, size_t size) {
+void blockSplit(struct blockHeader* block, size_t size) {
     
 }
 
