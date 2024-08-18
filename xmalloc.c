@@ -50,6 +50,7 @@ void* xmalloc(size_t size) {
                     curr->next = NULL;
                 }
             }
+            return (void*)((char*)curr + MEMBLOCK_HEADER_SIZE);
         }
         prev = curr;
         curr = curr->next;

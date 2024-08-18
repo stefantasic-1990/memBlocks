@@ -10,6 +10,8 @@
 #define MEMBLOCK_HEADER_SIZE (sizeof(struct blockHeader) + WORD_SIZE - 1) & ~(WORD_SIZE - 1)
 #define MEMBLOCK_FOOTER_SIZE (sizeof(struct blockFooter) + WORD_SIZE - 1) & ~(WORD_SIZE - 1)
 
+#define SMALLEST_BLOCK_SIZE (MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + WORD_SIZE)
+
 // memory block header
 struct blockHeader {
     struct blockHeader* next;
@@ -45,11 +47,15 @@ void* mapArena() {
     return arena;
 }
 
-void* blockCoalesce(void* ptr) {
+void removeBlock(struct blockHeader* ptr) {
+
+}
+
+struct blockHeader* blockCoalesce(struct blockHeader* ptr) {
     
 }
 
-void* blockSplit(void* ptr) {
+void blockSplit(struct blockHeader* ptr) {
     
 }
 
@@ -64,8 +70,14 @@ void* ymalloc(size_t size) {
 
     // search through the free list for a suitable block
     while (curr) {
-        if (curr->size >= aligned_size) {
-            
+        // if block size is larger than the request size and can be split
+        if (curr->size > (aligned_size + SMALLEST_BLOCK_SIZE)) {
+            blockSplit(curr);
+            removeBlock(curr);
+            return curr;
+        // if block size is large enough to fit the request size
+        } else if (curr->size > aligned_size) {
+
         }
     }
 
