@@ -15,13 +15,13 @@
 // memory block header
 struct blockHeader {
     struct blockHeader* next;
+    struct blockHeader* prev;
     size_t size;
     bool free;
 };
 
 // memory block footer
 struct blockFooter {
-    struct blockHeader* prev;
     size_t size;
     bool free;
 };
@@ -47,16 +47,15 @@ void mapMoreMemory() {
     // initialize header and footer, add to free list
     struct blockHeader* arena_header = arena;
     arena_header->next = freelist;
+    arena_header->prev = NULL;
     arena_header->size = (ARENA_SIZE - MEMBLOCK_HEADER_SIZE - MEMBLOCK_FOOTER_SIZE);
     arena_header->free = true;
 
-    struct blockFooter* arena_footer = ((char*)arena_header + header->size + MEMBLOCK_HEADER_SIZE);
-    arena_footer->prev = NULL;
-    arena_footer->size = (ARENA_SIZE - MEMBLOCK_HEADER_SIZE - MEMBLOCK_FOOTER_SIZE);
-    arena_footer->free = true;
+    struct blockFooter* arena_footer = ((char*)arena_header + MEMBLOCK_HEADER_SIZE + arena_header->size);
+    arena_footer->size = arena_header->size;
+    arena_footer->free = arena_header->free;
 
-    struct blockFooter* freelist_footer = ((char*)freelist + MEMBLOCK_HEADER_SIZE + freelist->size);
-    freelist_footer->prev = arena_header;
+    freelist->prev = arena_header;
     freelist = arena_header;
 
     return 1;
@@ -64,11 +63,8 @@ void mapMoreMemory() {
 
 // remove memory block from free list
 void* removeBlock(struct blockHeader* block) {
-    struct blockFooter* block_footer = ((char*)block + MEMBLOCK_HEADER_SIZE + block->size);
-    struct blockFooter* next_footer = ((char*)block->next + MEMBLOCK_HEADER_SIZE + block->size);
-    block_footer->prev = block->next;
-    next_footer = block_footer->prev;
-
+    block->prev->next = block->next;
+    block->next->prev = block->prev;
     return 1;
 }
 
