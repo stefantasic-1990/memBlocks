@@ -28,6 +28,7 @@ struct blockFooter {
 
 struct blockHeader* free_list = NULL;
 
+// map additional memory into free list
 void mapMoreMemory() {
     // map a large block of memory
     void* arena = mmap(
@@ -49,18 +50,22 @@ void mapMoreMemory() {
     return arena;
 }
 
+// remove memory block from free list
 void* removeBlock(struct blockHeader* ptr) {
 
 }
 
+// coalesce memory block
 void blockCoalesce(struct blockHeader* ptr) {
     
 }
 
+// split memory block
 void blockSplit(struct blockHeader* ptr, size_t size) {
     
 }
 
+// allocate memory from the free list
 void* ymalloc(size_t size) {
     // if requested block size is zero, return NULL
     if (size == 0) return NULL;
@@ -92,6 +97,12 @@ void* ymalloc(size_t size) {
     return (void*)((char*)block + MEMBLOCK_HEADER_SIZE);
 }
 
+// deallocate memory back into the free list
 void yfree(void* ptr) {
     
+}
+
+// print the current free list details
+void yprintfl() {
+
 }
