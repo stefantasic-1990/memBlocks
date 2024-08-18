@@ -34,21 +34,27 @@ int main() {
     int bytes_len = sizeof(bytes) / sizeof(bytes[0]);
     struct blockHeader* allocated_blocks[bytes_len];
 
-    yprintfl();
-    ymalloc(6);
-    yprintfl();
+    // TEST 1: allocation for various byte sizes
+    for (int i = 0; i < bytes_len; i++) {
+        void* ptr = ymalloc(bytes[i]);
+        printf("Allocating %i bytes\n", bytes[i]);
+        if (ptr == NULL) {
+            printf("Allocation failed requesting %i bytes", bytes[i]);
+        } else {
+            printf("Allocation succeeded\n");
+            struct blockHeader* block = (void*)((char*)ptr - MEMBLOCK_HEADER_SIZE);
+            printf("The total size of this block is (header plus data): %zu bytes\n", (block->size + MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE));
+            printf("The data size of this block is: %zu bytes\n", block->size);
+        }
+        allocated_blocks[i] = ptr;
+        yprintfl();
+    }
 
-    // for (int i = 0; i < bytes_len; i++) {
-    //     void* ptr = ymalloc(bytes[i]);
-    //     printf("Allocating %i bytes\n", bytes[i]);
-    //     if (ptr == NULL) {
-    //         printf("Allocation failed requesting %i bytes", bytes[i]);
-    //     } else {
-    //         printf("Allocation succeeded\n");
-    //         struct blockHeader* block = (void*)((char*)ptr - MEMBLOCK_HEADER_SIZE);
-    //         printf("The total size of this block is (header plus data): %zu bytes\n", (block->size + MEMBLOCK_HEADER_SIZE));
-    //         printf("The data size of this block is: %zu bytes\n\n", block->size);
-    //     }
-    //     allocated_blocks[i] = ptr;
-    // }
+    // TEST 2: deallocate all blocks and check the free list is accurate
+
+    // TEST 3: allocate the first, last, and middle block in the free list, causing splitting
+
+    // TEST 4: deallocate all blocks and check the free list is accurate
+
+    // TEST 5: allocate the first, last, and middle block in the free list, causing coalescence
 }
