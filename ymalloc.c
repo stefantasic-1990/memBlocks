@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdbool.h>
@@ -50,21 +51,21 @@ void mapMoreMemory() {
     arena_header->size = (ARENA_SIZE - MEMBLOCK_HEADER_SIZE - MEMBLOCK_FOOTER_SIZE);
     arena_header->free = true;
 
-    struct blockFooter* arena_footer = ((char*)arena_header + MEMBLOCK_HEADER_SIZE + arena_header->size);
+    struct blockFooter* arena_footer = (void*)(char*)arena_header + MEMBLOCK_HEADER_SIZE + arena_header->size;
     arena_footer->size = arena_header->size;
     arena_footer->free = arena_header->free;
 
     freelist->prev = arena_header;
     freelist = arena_header;
 
-    return 1;
+    return;
 }
 
 // remove memory block from free list
-void* removeBlock(struct blockHeader* block) {
+void removeBlock(struct blockHeader* block) {
     block->prev->next = block->next;
     block->next->prev = block->prev;
-    return 1;
+    return;
 }
 
 // coalesce memory block
@@ -75,11 +76,11 @@ void blockCoalesce(struct blockHeader* block) {
 // split memory block
 void blockSplit(struct blockHeader* block, size_t size) {
     // get pointer to new block footer
-    struct blockFooter* block_footer = (char*)block + MEMBLOCK_HEADER_SIZE + size;
+    struct blockFooter* block_footer = (void*)(char*)block + MEMBLOCK_HEADER_SIZE + size;
     // get pointer to split block header
-    struct blockHeader* split_block_header = (char*)block + MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + size;
+    struct blockHeader* split_block_header = (void*)(char*)block + MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + size;
     // get pointer to split block footer
-    struct blockFooter* split_block_footer = (char*)block + MEMBLOCK_HEADER_SIZE + (block->size - size);
+    struct blockFooter* split_block_footer = (void*)(char*)block + MEMBLOCK_HEADER_SIZE + (block->size - size);
 
     //adjust next and prev pointers
     split_block_header->next = block->next;
