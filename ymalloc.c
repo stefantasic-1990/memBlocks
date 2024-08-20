@@ -96,28 +96,39 @@ void removeBlock(struct blockHeader* block) {
     return;
 }
 
+// check resulting size if this block is coalesced
+int checkCoalesceSize(struct blockHeader* block) {
+    int total_size;
+    if (block->next != NULL) total_size += block->next->size;
+    if (block->prev != NULL) total_size += block->prev->size;
+
+    return total_size;
+}
+
 // coalesce memory block
-void blockCoalesce(struct blockHeader* block) {
+void* blockCoalesce(struct blockHeader* block) {
+    struct blockHeader* new_block;
     // check if block on the right is free to coalesce
     struct blockHeader* next_block_header = (void*)((char*)block + MEMBLOCK_HEADER_SIZE + block->size + MEMBLOCK_FOOTER_SIZE);
     if (next_block_header->free == true) {
         block->size += MEMBLOCK_FOOTER_SIZE + MEMBLOCK_HEADER_SIZE + next_block_header->size;
         struct blockFooter* new_block_footer = (void*)((char*)block + MEMBLOCK_HEADER_SIZE + block->size);
         new_block_footer->size = block->size;
+        new_block = block;
         removeBlock(next_block_header);
     }
     // check if block on the left is free to coalesce
     struct blockFooter* prev_block_footer = (void*)((char*)block - MEMBLOCK_FOOTER_SIZE);
     if (prev_block_footer->free == true) {
         struct blockHeader* new_block_header = (void*)((char*)prev_block_footer - prev_block_footer->size - MEMBLOCK_HEADER_SIZE);
-        removeBlock(new_block_header);
-        new_block_header->next = block->next;
-        new_block_header->prev = block->prev;
-        new_block_header->size = block->size;
-        new_block_header->free = block->free;
-        block->next = NULL;
-        block->prev = NULL;
+        new_block_header->size += MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + block->size;
+        struct blockFooter* new_block_footer = (void*)((char*)new_block_header + MEMBLOCK_HEADER_SIZE + new_block_header->size);
+        new_block_footer->size = new_block_header;
+        new_block = new_block_header;
+        removeBlock(block);
     }
+
+    return new_block;
 }
 
 // split memory block
@@ -174,6 +185,8 @@ void* ymalloc(size_t size) {
         } else if (block->size > size) {
             removeBlock(block);
             return (void*)((char*)block + MEMBLOCK_HEADER_SIZE);
+        } else if (checkCoalesceSize(block) > size) {
+            return (void*)((char*)blockCoalesce(block) + MEMBLOCK_HEADER_SIZE);
         }
         block = block->next;
     }
