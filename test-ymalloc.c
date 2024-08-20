@@ -43,7 +43,7 @@ int main() {
         } else {
             printf("Allocation succeeded\n");
             struct blockHeader* block = (void*)((char*)ptr - MEMBLOCK_HEADER_SIZE);
-            printf("The total size of this block is (header plus data): %zu bytes\n", (block->size + MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE));
+            printf("The total size of this block is (header and footer plus data): %zu bytes\n", (block->size + MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE));
             printf("The data size of this block is: %zu bytes\n", block->size);
         }
         allocated_blocks[i] = ptr;
