@@ -8,6 +8,7 @@
 
 // external functions
 void* ymalloc(size_t size);
+void yfree(void* block);
 void yprintfl();
 
 // memory block header
@@ -51,6 +52,12 @@ int main() {
     }
 
     // TEST 2: deallocate all blocks and check the free list is accurate
+    for (int i = 0; i < bytes_len; i++) {
+        printf("Freeing block with data size %zu bytes\n", allocated_blocks[i]->size);
+        yfree(allocated_blocks[i]);
+        printf("Block successfully freed\n");
+        yprintfl();
+    }
 
     // TEST 3: allocate the first, last, and middle block in the free list, causing splitting
 

@@ -88,6 +88,7 @@ void removeBlock(struct blockHeader* block) {
         }
     }
 
+    // change block free status in header and footer
     struct blockFooter* block_footer = (void*)((char*)block + MEMBLOCK_HEADER_SIZE + block->size);
     block_footer->free = false;
     block->free = block_footer->free;
@@ -188,8 +189,17 @@ void* ymalloc(size_t size) {
 
 // deallocate memory back into the free list
 void yfree(void* block) {
-    blockCoalesce(block);
+    struct blockHeader* block_header = (void*)((char*)block - MEMBLOCK_HEADER_SIZE);
+    block_header->next = freelist;
+    freelist = block_header;
+    if (freelist != NULL) block_header->next->prev = block_header;
 
+    // change block free status in header and footer
+    struct blockFooter* block_footer = (void*)((char*)block + MEMBLOCK_HEADER_SIZE + block_header->size);
+    block_footer->free = true;
+    block_header->free = block_footer->free;
+   
+    //blockCoalesce(block);
 }
 
 // print the current free list details
@@ -198,8 +208,9 @@ void yprintfl() {
     int i = 1; // block number
 
     while (block) {
-        printf("Free list block (%i) has a data size of (%zu) bytes\n\n", i, block->size);
+        printf("Free list block (%i) has a data size of (%zu) bytes\n", i, block->size);
         block = block->next;
         i++;
     }
+    printf("\n");
 }
