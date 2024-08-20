@@ -31,7 +31,7 @@ int main() {
     printf("The size of the memory block footer is %zu bytes.\n", MEMBLOCK_FOOTER_SIZE);
     printf("The smallest possible block size is %zu bytes.\n\n", SMALLEST_BLOCK_SIZE);
 
-    int bytes[] = {6, 10, 20, 100};
+    int bytes[] = {6, 10, 20, 40};
     int bytes_len = sizeof(bytes) / sizeof(bytes[0]);
     struct blockHeader* allocated_blocks[bytes_len];
 
@@ -46,15 +46,16 @@ int main() {
             struct blockHeader* block = (void*)((char*)ptr - MEMBLOCK_HEADER_SIZE);
             printf("The total size of this block is (header and footer plus data): %zu bytes\n", (block->size + MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE));
             printf("The data size of this block is: %zu bytes\n", block->size);
+            allocated_blocks[i] = block;
         }
-        allocated_blocks[i] = ptr;
         yprintfl();
     }
 
     // TEST 2: deallocate all blocks and check the free list is accurate
     for (int i = 0; i < bytes_len; i++) {
         printf("Freeing block with data size %zu bytes\n", allocated_blocks[i]->size);
-        yfree(allocated_blocks[i]);
+        void* block_data = (char*)allocated_blocks[i] + MEMBLOCK_HEADER_SIZE;
+        yfree(block_data);
         printf("Block successfully freed\n");
         yprintfl();
     }
