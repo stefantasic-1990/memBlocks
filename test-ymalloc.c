@@ -44,15 +44,16 @@ int main() {
         } else {
             printf("Allocation succeeded\n");
             struct blockHeader* block = (void*)((char*)ptr - MEMBLOCK_HEADER_SIZE);
-            printf("The total size of this block is (header and footer plus data): %zu bytes\n", (block->size + MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE));
-            printf("The data size of this block is: %zu bytes\n", block->size);
+            struct blockFooter* block_footer = (void*)((char*)block + MEMBLOCK_HEADER_SIZE + block->size);
+            printf("The total size of this block is (header and footer plus data): %zu bytes\n", (block_footer->size + MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE));
+            printf("The data size of this block is: %zu bytes\n", block_footer->size);
             allocated_blocks[i] = block;
         }
         yprintfl();
     }
 
     // TEST 2: deallocate all blocks and check the free list is accurate
-    for (int i = 0; i < bytes_len; i++) {
+    for (int i = (bytes_len -1); i >= 0; i--) {
         printf("Freeing block with data size %zu bytes\n", allocated_blocks[i]->size);
         void* block_data = (char*)allocated_blocks[i] + MEMBLOCK_HEADER_SIZE;
         yfree(block_data);
@@ -61,6 +62,8 @@ int main() {
     }
 
     // TEST 3: allocate the first, last, and middle block in the free list, causing splitting
+    ymalloc(18);
+    yprintfl();
 
     // TEST 4: deallocate all blocks and check the free list is accurate
 

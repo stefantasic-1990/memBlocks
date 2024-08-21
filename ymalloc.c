@@ -28,6 +28,19 @@ struct blockFooter {
 
 static struct blockHeader* freelist = NULL;
 
+// print the current free list details
+void yprintfl() {
+    struct blockHeader* block = freelist;
+    int i = 1; // block number
+
+    while (block) {
+        printf("Free list block (%i) has a data size of (%zu) bytes. Header: %i Footer: %i \n", i, block->size, block->free, block->free);
+        block = block->next;
+        i++;
+    }
+    printf("\n");
+}
+
 // map additional memory into free list
 void mapMoreMemory() {
     // map a large block of memory
@@ -98,7 +111,7 @@ void removeBlock(struct blockHeader* block) {
 
 // check resulting size if this block is coalesced
 int checkCoalesceSize(struct blockHeader* block) {
-    int total_size;
+    int total_size;// = block->size;
     if (block->next != NULL) total_size += block->next->size;
     if (block->prev != NULL) total_size += block->prev->size;
 
@@ -108,6 +121,9 @@ int checkCoalesceSize(struct blockHeader* block) {
 // coalesce memory block
 void* blockCoalesce(struct blockHeader* block) {
     struct blockHeader* new_block;
+
+    printf("Coalescing block with size %zu\n", block->size);
+
     // check if block on the right is free to coalesce
     struct blockHeader* next_block_header = (void*)((char*)block + MEMBLOCK_HEADER_SIZE + block->size + MEMBLOCK_FOOTER_SIZE);
     if (next_block_header->free == true) {
@@ -116,16 +132,21 @@ void* blockCoalesce(struct blockHeader* block) {
         new_block_footer->size = block->size;
         new_block = block;
         removeBlock(next_block_header);
+        new_block_footer->free = true;
+        printf("Next coalesced.\n");
     }
+
     // check if block on the left is free to coalesce
     struct blockFooter* prev_block_footer = (void*)((char*)block - MEMBLOCK_FOOTER_SIZE);
     if (prev_block_footer->free == true) {
         struct blockHeader* new_block_header = (void*)((char*)prev_block_footer - prev_block_footer->size - MEMBLOCK_HEADER_SIZE);
         new_block_header->size += MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + block->size;
         struct blockFooter* new_block_footer = (void*)((char*)new_block_header + MEMBLOCK_HEADER_SIZE + new_block_header->size);
-        new_block_footer->size = new_block_header;
+        new_block_footer->size = new_block_header->size;
         new_block = new_block_header;
         removeBlock(block);
+        new_block_footer->free = true;
+        printf("Previous coalesced.\n");
     }
 
     return new_block;
@@ -205,25 +226,12 @@ void yfree(void* block) {
     struct blockHeader* block_header = (void*)((char*)block - MEMBLOCK_HEADER_SIZE);
     block_header->next = freelist;
     freelist = block_header;
-    if (freelist != NULL) block_header->next->prev = block_header;
+    if (block_header->next != NULL) block_header->next->prev = block_header;
 
     // change block free status in header and footer
-    struct blockFooter* block_footer = (void*)((char*)block + MEMBLOCK_HEADER_SIZE + block_header->size);
+    struct blockFooter* block_footer = (void*)((char*)block_header + MEMBLOCK_HEADER_SIZE + block_header->size);
     block_footer->free = true;
     block_header->free = block_footer->free;
-   
-    //blockCoalesce(block);
-}
 
-// print the current free list details
-void yprintfl() {
-    struct blockHeader* block = freelist;
-    int i = 1; // block number
-
-    while (block) {
-        printf("Free list block (%i) has a data size of (%zu) bytes\n", i, block->size);
-        block = block->next;
-        i++;
-    }
-    printf("\n");
+    printf("Header - size: %zu Footer - size: %zu\n", block_header->size, block_footer->size);
 }
