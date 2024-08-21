@@ -111,11 +111,13 @@ void removeBlock(struct blockHeader* block) {
 
 // check resulting size if this block is coalesced
 int checkCoalesceSize(struct blockHeader* block) {
-    int total_size;// = block->size;
-    if (block->next != NULL) total_size += block->next->size;
-    if (block->prev != NULL) total_size += block->prev->size;
+    int coalesced_size = block->size;// = block->size;
+    if (block->next != NULL) coalesced_size += block->next->size + MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE;
+    if (block->prev != NULL) coalesced_size += block->prev->size + MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE;
 
-    return total_size;
+    printf("Size before coalescance: %i\n", coalesced_size);
+
+    return coalesced_size;
 }
 
 // coalesce memory block
@@ -153,7 +155,7 @@ void* blockCoalesce(struct blockHeader* block) {
 }
 
 // split memory block
-void blockSplit(struct blockHeader* block, size_t size) {
+void* blockSplit(struct blockHeader* block, size_t size) {
     // align size to memory
     size_t aligned_size = (size + WORD_SIZE - 1) & ~(WORD_SIZE - 1);
 
@@ -182,7 +184,7 @@ void blockSplit(struct blockHeader* block, size_t size) {
     block_footer->size = block->size;
     block_footer->free = true;
 
-    return;
+    return block;
 }
 
 // allocate memory from the free list
@@ -199,15 +201,21 @@ void* ymalloc(size_t size) {
     while (block) {
         // if block size is larger than the request size and can be split
         if (block->size >= (size + SMALLEST_BLOCK_SIZE)) {
-            blockSplit(block, size);
-            removeBlock(block);
-            return (void*)((char*)block + MEMBLOCK_HEADER_SIZE);
+            struct blockHeader* allocated_block = blockSplit(block, size);
+            removeBlock(allocated_block);
+            return (void*)((char*)allocated_block + MEMBLOCK_HEADER_SIZE);
         // if block size is large enough to fit the request size
-        } else if (block->size > size) {
+        } else if (block->size >= size) {
             removeBlock(block);
             return (void*)((char*)block + MEMBLOCK_HEADER_SIZE);
-        } else if (checkCoalesceSize(block) > size) {
-            return (void*)((char*)blockCoalesce(block) + MEMBLOCK_HEADER_SIZE);
+        } else if (checkCoalesceSize(block) >= (size + SMALLEST_BLOCK_SIZE)) {
+            struct blockHeader* allocated_block = blockSplit(blockCoalesce(block), size);
+            removeBlock(allocated_block);
+            return (void*)((char*)allocated_block + MEMBLOCK_HEADER_SIZE);
+        } else if (checkCoalesceSize(block) >= size) {
+            struct blockHeader* allocated_block = blockCoalesce(block);
+            removeBlock(allocated_block);
+            return (void*)((char*)allocated_block + MEMBLOCK_HEADER_SIZE);
         }
         block = block->next;
     }
@@ -232,6 +240,4 @@ void yfree(void* block) {
     struct blockFooter* block_footer = (void*)((char*)block_header + MEMBLOCK_HEADER_SIZE + block_header->size);
     block_footer->free = true;
     block_header->free = block_footer->free;
-
-    printf("Header - size: %zu Footer - size: %zu\n", block_header->size, block_footer->size);
 }

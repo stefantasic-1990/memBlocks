@@ -31,11 +31,11 @@ int main() {
     printf("The size of the memory block footer is %zu bytes.\n", MEMBLOCK_FOOTER_SIZE);
     printf("The smallest possible block size is %zu bytes.\n\n", SMALLEST_BLOCK_SIZE);
 
-    int bytes[] = {6, 10, 20, 40};
+    int bytes[] = {64, 120, 240, 500};
     int bytes_len = sizeof(bytes) / sizeof(bytes[0]);
     struct blockHeader* allocated_blocks[bytes_len];
 
-    // TEST 1: allocation for various byte sizes
+    // TEST 1: allocate blocks of various byte sizes
     for (int i = 0; i < bytes_len; i++) {
         void* ptr = ymalloc(bytes[i]);
         printf("Allocating %i bytes\n", bytes[i]);
@@ -61,11 +61,29 @@ int main() {
         yprintfl();
     }
 
-    // TEST 3: allocate the first, last, and middle block in the free list, causing splitting
-    ymalloc(18);
-    yprintfl();
+    // // TEST 3: allocate the first, middle, and last block in the free list, causing splitting
+    // void* alloc_first = ymalloc(8); // allocate 8 which will split the 64 byte block into two 8 byte blocks
+    // yprintfl();
 
-    // TEST 4: deallocate all blocks and check the free list is accurate
+    // void* alloc_middle = ymalloc(160); // allocate 8 which will split the 504 byte block into a 152 byte block and a 304 byte block
+    // yprintfl();
+
+    // void* alloc_last = ymalloc(300); // allocate 8 which will split the 504 byte block into a 152 byte block and a 304 byte block
+    // yprintfl();
+
+    // // TEST 4: deallocate all blocks and check the free list is accurate and that the splits are accurate
+    // yfree(alloc_first);
+    // yfree(alloc_middle);
+    // yfree(alloc_last);
+    // yprintfl();
 
     // TEST 5: allocate the first, last, and middle block in the free list, causing coalescence
+    void* alloc_coa1 = ymalloc(176); // coalesce the 64 byte and 120 byte blocks, split to allocate and leave an 8 byte block
+    yprintfl();
+
+    void* alloc_coa2 = ymalloc(784); // coalesce the 8 byte, 240 byte, and 504 byte blocks, split to allocate and leave a 16 byte byte block
+    yprintfl();
+
+    void* alloc_coa3 = ymalloc(200); // coalesce the 16 byte, and the last large block, to leave only one large block
+    yprintfl();
 }
