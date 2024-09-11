@@ -7,5 +7,5 @@ Personal project implementing a free list memory allocator in C.
 ## Features
 
 - [ ] Basic allocation/deallocation
-- - [ ] 
+- [ ] 
 - [ ] Segregated free lists
