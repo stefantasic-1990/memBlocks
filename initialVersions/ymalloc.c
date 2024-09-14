@@ -10,7 +10,7 @@
 #define MEMBLOCK_HEADER_SIZE ((sizeof(struct blockHeader) + WORD_SIZE - 1) & ~(WORD_SIZE - 1))
 #define MEMBLOCK_FOOTER_SIZE ((sizeof(struct blockFooter) + WORD_SIZE - 1) & ~(WORD_SIZE - 1))
 // smallest possible block size (holds one word)
-#define SMALLEST_BLOCK_SIZE (MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + WORD_SIZE)
+#define SMALLEST_MEMBLOCK_SIZE (MEMBLOCK_HEADER_SIZE + MEMBLOCK_FOOTER_SIZE + WORD_SIZE)
 
 // memory block header
 struct blockHeader {
@@ -200,7 +200,7 @@ void* ymalloc(size_t size) {
     // search through the free list for a suitable block
     while (block) {
         // if block size is larger than the request size and can be split
-        if (block->size >= (size + SMALLEST_BLOCK_SIZE)) {
+        if (block->size >= (size + SMALLEST_MEMBLOCK_SIZE)) {
             struct blockHeader* allocated_block = blockSplit(block, size);
             removeBlock(allocated_block);
             return (void*)((char*)allocated_block + MEMBLOCK_HEADER_SIZE);
@@ -208,7 +208,7 @@ void* ymalloc(size_t size) {
         } else if (block->size >= size) {
             removeBlock(block);
             return (void*)((char*)block + MEMBLOCK_HEADER_SIZE);
-        } else if (checkCoalesceSize(block) >= (size + SMALLEST_BLOCK_SIZE)) {
+        } else if (checkCoalesceSize(block) >= (size + SMALLEST_MEMBLOCK_SIZE)) {
             struct blockHeader* allocated_block = blockSplit(blockCoalesce(block), size);
             removeBlock(allocated_block);
             return (void*)((char*)allocated_block + MEMBLOCK_HEADER_SIZE);
