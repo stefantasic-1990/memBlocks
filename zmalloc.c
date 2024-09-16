@@ -1,6 +1,12 @@
-#define NUM_LISTS 10
-#define DISTRIBUTION_DIVISION_FACTOR 1.5
-#define DISTRIBUTION_INITIAL_NUMBER 256
+#include <math.h>
+
+#define FREELIST_AMOUNT 10
+#define FREELIST_DISTRIBUTION_INITIAL 100
+#define FREELIST_DISTRIBUTION_FACTOR 0.7
+
+#define BLOCK_ALIGNMENT_SIZE 16
+#define BLOCK_METADATA_SIZE ((sizeof(blockMetadata) + BLOCK_ALIGNMENT_SIZE -1) & ~(BLOCK_ALIGNMENT_SIZE -1))
+#define BLOCK_SMALLEST_SIZE ((2 * BLOCK_METADATA_SIZE) + BLOCK_ALIGNMENT_SIZE)
 
 typedef struct {
     size_t size;
@@ -12,20 +18,63 @@ typedef struct {
     blockMetadata* prev_header;
 } listPtrs;
 
-blockMetadata* free_lists[NUM_LISTS];
+blockMetadata* free_lists[FREELIST_AMOUNT];
 
 void init() {
-    list_size = DISTRIBUTION_INITIAL_NUMBER;
-    int block_size = (i+1)*16;
-    for (i=0 ; i <= 10; i++) {
-        for (k=0; k < list_size/2; k++) {
-            // create blocks for the left side of the list
+    
+    // initialize each list
+    for (i=0 ; i <= FREELIST_AMOUNT; i++) {
+
+        // calculate current list number of blocks
+        int list_number_of_blocks = FREELIST_DISTRIBUTION_INITIAL * pow(0.7, i);
+        int small_block_amount = list_number_of_blocks / 2;
+        int large_block_amount = list_number_of_blocks - small_block_amount;
+        
+        // calculate current list block data sizes
+        int small_block_data_size = BLOCK_ALIGNMENT_SIZE + (i * 2 * BLOCK_ALIGNMENT_SIZE);
+        int large_block_data_size = small_block_data_size + BLOCK_ALIGNMENT_SIZE;
+        
+        // calculate current list memory requirement
+        int list_byte_size = list_number_of_blocks * ((2 * BLOCK_METADATA_SIZE) + (small_block_data_size + BLOCK_ALIGNMENT_SIZE/2))
+        
+        // allocate current list memory from the OS
+        free_lists[i] = mmap(
+            NULL, 
+            list_byte_size, 
+            PROT_READ | PROT_WRITE, 
+            MAP_PRIVATE | MAP_ANONYMOUS, 
+            -1, 
+            0
+        );
+
+        if (arena == MAP_FAILED) {
+            perror("mmap");
+            exit(EXIT_FAILURE);
         }
-        block_size += 16;
-        for (j=0; k < list_size/2; j++) {
-            // create blocks for the right side of the list
+
+        // initialize current list block pointers
+        blockMetadata* current_block_header = free_lists[i];
+        blockMetadata* current_block_footer = NULL;
+        
+        // initialize current list small blocks
+        for (k=0; k < small_block_amount; k++) {
+            current_block_header->size = small_block_data_size;
+            current_block_header->free = true;
+            current_block_footer = (void*)((char*)current_block_header + BLOCK_METADATA_SIZE + small_block_data_size)
+            current_block_footer->size = current_block_header->size;
+            current_block_footer->free = current_block_header->free;
+            current_block_header = (void*)((char*)current_block_footer + BLOCK_METADATA_SIZE)
         }
-        block_size += 16;
+
+        // initialize current list large blocks
+        for (j=0; k < large_block_amount; j++) {
+            current_block_header->size = large_block_data_size;
+            current_block_header->free = true;
+            current_block_footer = (void*)((char*)current_block_header + BLOCK_METADATA_SIZE + large_block_data_size)
+            current_block_footer->size = current_block_header->size;
+            current_block_footer->free = current_block_header->free;
+            current_block_header = (void*)((char*)current_block_footer + BLOCK_METADATA_SIZE)
+        }
     }
 }
 
