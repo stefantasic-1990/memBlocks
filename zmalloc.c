@@ -20,6 +20,14 @@ typedef struct {
 
 blockMetadata* free_lists[FREELIST_AMOUNT];
 
+void* allocate_memory(size) {
+    void* memory = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (memory == MAP_FAILED) {
+        perror("mmap");
+        exit(EXIT_FAILURE);
+    }
+}
+
 blockMetadata* initialize_blocks(blockMetadata* header, int block_size, int block_amount) {
     for (k=0; k < small_block_amount; k++) {
         header->size = block_size;
@@ -50,19 +58,7 @@ void init() {
         int list_byte_size = list_number_of_blocks * ((2 * BLOCK_METADATA_SIZE) + (small_block_data_size + BLOCK_ALIGNMENT_SIZE/2)); // possibly change this calculation
         
         // allocate current list memory from the OS
-        free_lists[i] = mmap(
-            NULL, 
-            list_byte_size, 
-            PROT_READ | PROT_WRITE, 
-            MAP_PRIVATE | MAP_ANONYMOUS, 
-            -1, 
-            0
-        );
-
-        if (free_lists[i] == MAP_FAILED) {
-            perror("mmap");
-            exit(EXIT_FAILURE);
-        }
+        free_lists[i] = 
     }
 }
 
