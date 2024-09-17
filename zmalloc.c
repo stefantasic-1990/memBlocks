@@ -20,6 +20,10 @@ typedef struct {
 
 blockMetadata* free_lists[FREELIST_AMOUNT];
 
+void initialize_blocks(blockMetadata* header, int block_size, int block_amount) {
+
+}
+
 void init() {
     
     // initialize each list
