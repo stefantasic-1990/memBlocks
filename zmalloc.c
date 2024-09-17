@@ -20,8 +20,16 @@ typedef struct {
 
 blockMetadata* free_lists[FREELIST_AMOUNT];
 
-void initialize_blocks(blockMetadata* header, int block_size, int block_amount) {
+blockMetadata* initialize_blocks(blockMetadata* header, int block_size, int block_amount) {
+    for (k=0; k < small_block_amount; k++) {
+        header->size = block_size;
+        header->free = true;
+        footer = (void*)((char*)header + BLOCK_METADATA_SIZE + block_size)
+        *footer = *header;
+        header = (void*)((char*)footer + BLOCK_METADATA_SIZE);
+    }
 
+    return header;
 }
 
 void init() {
@@ -54,30 +62,6 @@ void init() {
         if (free_lists[i] == MAP_FAILED) {
             perror("mmap");
             exit(EXIT_FAILURE);
-        }
-
-        // initialize current list block pointers
-        blockMetadata* current_block_header = free_lists[i];
-        blockMetadata* current_block_footer = NULL;
-        
-        // initialize current list small blocks
-        for (k=0; k < small_block_amount; k++) {
-            current_block_header->size = small_block_data_size;
-            current_block_header->free = true;
-            current_block_footer = (void*)((char*)current_block_header + BLOCK_METADATA_SIZE + small_block_data_size)
-            current_block_footer->size = current_block_header->size;
-            current_block_footer->free = current_block_header->free;
-            current_block_header = (void*)((char*)current_block_footer + BLOCK_METADATA_SIZE);
-        }
-
-        // initialize current list large blocks
-        for (j=0; j < large_block_amount; j++) {
-            current_block_header->size = large_block_data_size;
-            current_block_header->free = true;
-            current_block_footer = (void*)((char*)current_block_header + BLOCK_METADATA_SIZE + large_block_data_size)
-            current_block_footer->size = current_block_header->size;
-            current_block_footer->free = current_block_header->free;
-            current_block_header = (void*)((char*)current_block_footer + BLOCK_METADATA_SIZE)
         }
     }
 }
