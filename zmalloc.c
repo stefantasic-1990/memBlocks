@@ -23,7 +23,7 @@ blockMetadata* free_lists[FREELIST_AMOUNT];
 void init() {
     
     // initialize each list
-    for (i=0 ; i <= FREELIST_AMOUNT; i++) {
+    for (i=0 ; i < FREELIST_AMOUNT; i++) {
 
         // calculate current list number of blocks
         int list_number_of_blocks = FREELIST_DISTRIBUTION_INITIAL * pow(0.7, i);
@@ -35,7 +35,7 @@ void init() {
         int large_block_data_size = small_block_data_size + BLOCK_ALIGNMENT_SIZE;
         
         // calculate current list memory requirement
-        int list_byte_size = list_number_of_blocks * ((2 * BLOCK_METADATA_SIZE) + (small_block_data_size + BLOCK_ALIGNMENT_SIZE/2))
+        int list_byte_size = list_number_of_blocks * ((2 * BLOCK_METADATA_SIZE) + (small_block_data_size + BLOCK_ALIGNMENT_SIZE/2)); // possibly change this calculation
         
         // allocate current list memory from the OS
         free_lists[i] = mmap(
@@ -47,7 +47,7 @@ void init() {
             0
         );
 
-        if (arena == MAP_FAILED) {
+        if (free_lists[i] == MAP_FAILED) {
             perror("mmap");
             exit(EXIT_FAILURE);
         }
@@ -63,11 +63,11 @@ void init() {
             current_block_footer = (void*)((char*)current_block_header + BLOCK_METADATA_SIZE + small_block_data_size)
             current_block_footer->size = current_block_header->size;
             current_block_footer->free = current_block_header->free;
-            current_block_header = (void*)((char*)current_block_footer + BLOCK_METADATA_SIZE)
+            current_block_header = (void*)((char*)current_block_footer + BLOCK_METADATA_SIZE);
         }
 
         // initialize current list large blocks
-        for (j=0; k < large_block_amount; j++) {
+        for (j=0; j < large_block_amount; j++) {
             current_block_header->size = large_block_data_size;
             current_block_header->free = true;
             current_block_footer = (void*)((char*)current_block_header + BLOCK_METADATA_SIZE + large_block_data_size)
