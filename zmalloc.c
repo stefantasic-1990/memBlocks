@@ -19,8 +19,9 @@ typedef struct {
     blockMetadata* prev_header;
 } listPtrs;
 
-blockMetadata* free_lists[FREELIST_AMOUNT];
+static blockMetadata* free_lists[FREELIST_AMOUNT];
 
+// allocate memory from the operating system
 void* allocate_memory(size) {
     void* memory = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (memory == MAP_FAILED) {
@@ -29,6 +30,7 @@ void* allocate_memory(size) {
     }
 }
 
+// initialize an amount of contiguous blocks of certain size in memory
 blockMetadata* initialize_blocks(blockMetadata* header, int block_size, int block_amount) {
     for (k=0; k < small_block_amount; k++) {
         header->size = block_size;
@@ -64,4 +66,10 @@ void init() {
         // initialize blocks
         initialize_blocks(initialize_blocks(free_lists[i], small_block_data_size, small_block_amount), large_block_data_size, large_block_amount)
     }
+}
+
+
+// print amount of blocks of each size and status
+void print_block_stats() {
+
 }
