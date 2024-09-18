@@ -3,6 +3,7 @@
 #define FREELIST_AMOUNT 10
 #define FREELIST_DISTRIBUTION_INITIAL 100
 #define FREELIST_DISTRIBUTION_FACTOR 0.7
+#define FREELIST_DISTRIBUTION_RATIO 0.7
 
 #define BLOCK_ALIGNMENT_SIZE 16
 #define BLOCK_METADATA_SIZE ((sizeof(blockMetadata) + BLOCK_ALIGNMENT_SIZE -1) & ~(BLOCK_ALIGNMENT_SIZE -1))
@@ -45,35 +46,25 @@ void init() {
     // initialize each list
     for (i=0 ; i < FREELIST_AMOUNT; i++) {
 
-        // calculate current list number of blocks
-        int list_number_of_blocks = FREELIST_DISTRIBUTION_INITIAL * pow(0.7, i);
-        int small_block_amount = list_number_of_blocks / 2;
-        int large_block_amount = list_number_of_blocks - small_block_amount;
+        // calculate block amounts
+        int block_amount = FREELIST_DISTRIBUTION_INITIAL * pow(0.7, i);
+        int small_block_amount = block_amount * FREELIST_DISTRIBUTION_RATIO;
+        int large_block_amount = block_amount - small_block_amount;
         
-        // calculate current list block data sizes
+        // calculate block data sizes
         int small_block_data_size = BLOCK_ALIGNMENT_SIZE + (i * 2 * BLOCK_ALIGNMENT_SIZE);
         int large_block_data_size = small_block_data_size + BLOCK_ALIGNMENT_SIZE;
         
-        // calculate current list memory requirement
-        int list_byte_size = list_number_of_blocks * ((2 * BLOCK_METADATA_SIZE) + (small_block_data_size + BLOCK_ALIGNMENT_SIZE/2)); // possibly change this calculation
+        // calculate memory requirement
+        int list_memory_size = (small_block_amount * small_block_data_size) + (large_block_amount * large_block_data_size) + (block_amount * 2 * BLOCK_METADATA_SIZE);
         
         // allocate current list memory from the OS
-        free_lists[i] = 
+        free_lists[i] = allocate_memory(list_memory_size);
+
+        // initialize blocks
+        initialize_blocks(initialize_blocks(free_lists[i], small_block_data_size, small_block_amount), large_block_data_size, large_block_amount)
     }
 }
-
-
-
-/* BIN SIZES
-
-LIST 1 (SMALL): 16, 32
-LIST 2 (MEDIUM): 48, 64
-LIST 3 (LARGE): 80, 96
-
-*/
-
-
-
 
 /* NOTES
 - segregated free lists (segregated fit with specific class sizes (some powers of 2 classes)
