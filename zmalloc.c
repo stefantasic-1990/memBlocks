@@ -33,11 +33,15 @@ void* allocate_memory(size) {
 // initialize an amount of contiguous blocks of certain size in memory
 blockMetadata* initialize_blocks(blockMetadata* header, int block_size, int block_amount) {
     for (k=0; k < small_block_amount; k++) {
+        listPtrs* pointers = (void*)((char*)header + BLOCK_METADATA_SIZE)
+        blockMetadata* footer = (void*)((char*)list_pointers + block_size)
+        blockMetadata* next_header = (void*)((char*)footer + BLOCK_METADATA_SIZE);
+        listPtrs* next_pointers = (void*)((char*)next_header + BLOCK_METADATA_SIZE)
         header->size = block_size;
         header->free = true;
-        footer = (void*)((char*)header + BLOCK_METADATA_SIZE + block_size)
         *footer = *header;
-        header = (void*)((char*)footer + BLOCK_METADATA_SIZE);
+        pointers->next_header = next_header;
+        next_pointers->prev_header = header;
     }
 
     return header;
@@ -71,5 +75,7 @@ void init() {
 
 // print amount of blocks of each size and status
 void print_block_stats() {
+    for (i=0; i < FREELIST_AMOUNT; i++) {
 
+    }
 }
