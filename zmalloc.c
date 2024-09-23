@@ -56,7 +56,7 @@ blockMetadata* initialize_blocks(blockMetadata* curr_header, int block_size, int
     curr_header = (void*)((char*)curr_footer + BLOCK_METADATA_SIZE);;
 
     // initialize rest of blocks
-    for (k=0; k < small_block_amount - 1; k++) {
+    for (k=0; k < block_amount - 1; k++) {
         listPtrs* curr_ptrs = (void*)((char*)curr_header + BLOCK_METADATA_SIZE);
         blockMetadata* curr_footer = (void*)((char*)curr_ptrs + block_size);
         listPtrs* prev_ptrs = (void*)((char*)curr_header - BLOCK_METADATA_SIZE - block_size);
@@ -76,6 +76,7 @@ blockMetadata* initialize_blocks(blockMetadata* curr_header, int block_size, int
     return curr_header;
 }
 
+// initialize memory
 void init() {
     
     // initialize each list
@@ -102,10 +103,23 @@ void init() {
 }
 
 
-// print amount of blocks of each size and status
+// print amount of free blocks of each size
 void print_block_stats() {
+
     for (i=0; i < FREELIST_AMOUNT; i++) {
-        current_block = free_lists[i];
-        current_
+        int free_small_blocks = 0;
+        int free_large_blocks = 0;
+        int small_block_data_size = BLOCK_ALIGNMENT_SIZE + (i * 2 * BLOCK_ALIGNMENT_SIZE);
+
+        curr_header = free_lists[i];
+        while (curr_header != NULL) {
+            block_size = curr_header->size;
+            if (block_size == small_block_data_size) {
+                free_small_blocks = free_small_blocks++;
+            } else {
+                free_large_blocks = free_large_blocks++;
+            }
+            curr_header = (*void)((*char)curr_header + block_size + BLOCK_METADATA_SIZE);
+        }
     }
 }
