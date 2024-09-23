@@ -4,7 +4,7 @@
 #define FREELIST_AMOUNT 10
 #define FREELIST_DISTRIBUTION_INITIAL 100
 #define FREELIST_DISTRIBUTION_FACTOR 0.7
-#define FREELIST_DISTRIBUTION_RATIO 0.7
+#define FREELIST_DISTRIBUTION_RATIO 0.6
 
 #define PLATFORM_WORD_SIZE sizeof(void*)
 #define BLOCK_ALIGNMENT_SIZE 2 * WORD_SIZE
@@ -33,35 +33,47 @@ void* allocate_memory(size) {
 }
 
 // initialize an amount of contiguous blocks of certain size in memory
-blockMetadata* initialize_blocks(blockMetadata* header, int block_size, int block_amount, bool link) {
-        // initialize first block
-        listPtrs* pointers = (void*)((char*)header + BLOCK_METADATA_SIZE)
-        blockMetadata* footer = (void*)((char*)list_pointers + block_size)
-        blockMetadata* next_header = (void*)((char*)footer + BLOCK_METADATA_SIZE);
-        listPtrs* next_pointers = (void*)((char*)next_header + BLOCK_METADATA_SIZE)
-        header->size = block_size;
-        header->free = true;
-        *footer = *header;
-        pointers->next_header = next_header;
-        next_pointers->prev_header = header;
-        header = next_header;
+blockMetadata* initialize_blocks(blockMetadata* curr_header, int block_size, int block_amount, bool back_link) {
 
-    for (k=0; k < small_block_amount - 2; k++) {
-        listPtrs* pointers = (void*)((char*)header + BLOCK_METADATA_SIZE)
-        blockMetadata* footer = (void*)((char*)list_pointers + block_size)
-        blockMetadata* next_header = (void*)((char*)footer + BLOCK_METADATA_SIZE);
-        listPtrs* next_pointers = (void*)((char*)next_header + BLOCK_METADATA_SIZE)
-        header->size = block_size;
-        header->free = true;
-        *footer = *header;
-        pointers->next_header = next_header;
-        next_pointers->prev_header = header;
-        header = next_header;
+    // initialize first block
+    listPtrs* curr_ptrs = (void*)((char*)curr_header + BLOCK_METADATA_SIZE);
+    blockMetadata* curr_footer = (void*)((char*)curr_ptrs + block_size);
+
+    curr_header->size = block_size;
+    curr_header->free = true;
+    *curr_footer = *curr_header;
+
+    curr_ptrs->next_header = NULL;
+    if (back_link != true) {
+        curr_ptrs->prev_header = NULL;
+    } else (
+        listPtrs* prev_ptrs = (void*)((char*)curr_header - BLOCK_METADATA_SIZE - block_size);
+        blockMetadata* prev_header = (void*)((char*)prev_ptrs - BLOCK_METADATA_SIZE);
+        curr_ptrs->prev_header = prev_header;
+        prev_ptrs->next_header = curr_header;
+    )
+
+    curr_header = (void*)((char*)curr_footer + BLOCK_METADATA_SIZE);;
+
+    // initialize rest of blocks
+    for (k=0; k < small_block_amount - 1; k++) {
+        listPtrs* curr_ptrs = (void*)((char*)curr_header + BLOCK_METADATA_SIZE);
+        blockMetadata* curr_footer = (void*)((char*)curr_ptrs + block_size);
+        listPtrs* prev_ptrs = (void*)((char*)curr_header - BLOCK_METADATA_SIZE - block_size);
+        blockMetadata* prev_header = (void*)((char*)prev_ptrs - BLOCK_METADATA_SIZE);
+
+        curr_header->size = block_size;
+        curr_footer->free = true;
+        *curr_footer = *curr_header;
+
+        curr_ptrs->next_header = NULL;
+        curr_ptrs->prev_header = prev_header;
+        prev_ptrs->next_header = curr_header;
+
+        curr_header = (void*)((char*)curr_footer + BLOCK_METADATA_SIZE);
     }
 
-    // initialize last block
-
-    return header;
+    return curr_header;
 }
 
 void init() {
@@ -85,7 +97,7 @@ void init() {
         free_lists[i] = allocate_memory(list_memory_size);
 
         // initialize blocks
-        initialize_blocks(initialize_blocks(free_lists[i], small_block_data_size, small_block_amount, true), large_block_data_size, large_block_amount, false)
+        initialize_blocks(initialize_blocks(free_lists[i], small_block_data_size, small_block_amount, false), large_block_data_size, large_block_amount, true)
     }
 }
 
