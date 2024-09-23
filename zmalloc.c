@@ -102,7 +102,6 @@ void init() {
     }
 }
 
-
 // print amount of free blocks of each size
 void print_block_stats() {
 
