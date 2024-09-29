@@ -110,15 +110,15 @@ void print_block_stats() {
         int free_large_blocks = 0;
         int small_block_data_size = BLOCK_ALIGNMENT_SIZE + (i * 2 * BLOCK_ALIGNMENT_SIZE);
 
-        curr_header = free_lists[i];
-        while (curr_header != NULL) {
-            block_size = curr_header->size;
+        curr_block = free_lists[i];
+        while (curr_block != NULL) {
+            block_size = curr_block->size;
             if (block_size == small_block_data_size) {
                 free_small_blocks = free_small_blocks++;
             } else {
                 free_large_blocks = free_large_blocks++;
             }
-            curr_header = (*void)((*char)curr_header + block_size + BLOCK_METADATA_SIZE);
+            curr_block = (*void)((*char)curr_block + block_size + (2*BLOCK_METADATA_SIZE));
         }
     }
 }
