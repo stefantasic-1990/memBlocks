@@ -121,4 +121,5 @@ void print_block_stats() {
             curr_header = (*void)((*char)curr_header + block_size + BLOCK_METADATA_SIZE);
         }
     }
+    
 }
